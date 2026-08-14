@@ -27,11 +27,14 @@ export const OrderInfo: FC = () => {
     if (!orderData || !ingredients.length) return null;
 
     const date = new Date(orderData.createdAt);
-    const ingredientsInfo: { [key: string]: TIngredient & { count: number } } = {};
+    const ingredientsInfo: { [key: string]: TIngredient & { count: number } } =
+      {};
 
     orderData.ingredients.forEach((id: string) => {
       if (!ingredientsInfo[id]) {
-        const ingredient = ingredients.find((ing: TIngredient) => ing._id === id);
+        const ingredient = ingredients.find(
+          (ing: TIngredient) => ing._id === id
+        );
         if (ingredient) {
           ingredientsInfo[id] = { ...ingredient, count: 1 };
         }
@@ -41,7 +44,8 @@ export const OrderInfo: FC = () => {
     });
 
     const total = Object.values(ingredientsInfo).reduce(
-      (acc: number, item: TIngredient & { count: number }) => acc + item.price * item.count,
+      (acc: number, item: TIngredient & { count: number }) =>
+        acc + item.price * item.count,
       0
     );
 

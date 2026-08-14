@@ -17,8 +17,10 @@ export const Feed: FC = () => {
   };
 
   if (loading) return <Preloader />;
-  if (error) return <div className="text text_type_main-medium pt-4">{error}</div>;
-  if (!orders.length) return <div className="text text_type_main-medium pt-4">Нет заказов</div>;
+  if (error)
+    return <div className='text text_type_main-medium pt-4'>{error}</div>;
+  if (!orders.length)
+    return <div className='text text_type_main-medium pt-4'>Нет заказов</div>;
 
   return <FeedUI orders={orders} handleGetFeeds={handleGetFeeds} />;
 };

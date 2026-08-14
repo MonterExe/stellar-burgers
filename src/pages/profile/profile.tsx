@@ -1,11 +1,11 @@
 import { FC, SyntheticEvent, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from '../../services/store';
-import { updateUser } from '../../services/profileSlice';
+import { updateUser, userSelector } from '../../services/profileSlice';
 import { ProfileUI } from '../../components/ui/pages/profile';
 
 export const Profile: FC = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.profile);
+  const user = useSelector(userSelector);
 
   const [formValue, setFormValue] = useState({
     name: user?.name || '',
@@ -35,9 +35,7 @@ export const Profile: FC = () => {
       if (formValue.name !== user?.name) data.name = formValue.name;
       if (formValue.email !== user?.email) data.email = formValue.email;
       if (formValue.password) data.password = formValue.password;
-      dispatch(updateUser(data))
-        .unwrap()
-        .catch(console.error);
+      dispatch(updateUser(data)).unwrap().catch(console.error);
     }
   };
 

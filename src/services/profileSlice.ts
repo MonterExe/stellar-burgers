@@ -16,7 +16,7 @@ interface ProfileState {
   user: TUser | null;
   isAuthenticated: boolean;
   orders: TOrder[];
-  loading: boolean;
+  isLoading: boolean;
   error: string | null;
 }
 
@@ -24,7 +24,7 @@ const initialState: ProfileState = {
   user: null,
   isAuthenticated: false,
   orders: [],
-  loading: false,
+  isLoading: false,
   error: null
 };
 
@@ -100,7 +100,9 @@ export const fetchUserOrders = createAsyncThunk(
       const orders = await getOrdersApi();
       return orders;
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Ошибка загрузки истории заказов');
+      return rejectWithValue(
+        error.message || 'Ошибка загрузки истории заказов'
+      );
     }
   }
 );
@@ -119,29 +121,32 @@ const profileSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(loginUser.pending, (state) => {
-        state.loading = true;
+        state.isLoading = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action: PayloadAction<TUser>) => {
-        state.loading = false;
+        state.isLoading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
         state.error = action.payload as string;
       })
       .addCase(registerUser.pending, (state) => {
-        state.loading = true;
+        state.isLoading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action: PayloadAction<TUser>) => {
-        state.loading = false;
-        state.user = action.payload;
-        state.isAuthenticated = true;
-      })
+      .addCase(
+        registerUser.fulfilled,
+        (state, action: PayloadAction<TUser>) => {
+          state.isLoading = false;
+          state.user = action.payload;
+          state.isAuthenticated = true;
+        }
+      )
       .addCase(registerUser.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
         state.error = action.payload as string;
       })
       .addCase(logoutUser.fulfilled, (state) => {
@@ -153,16 +158,16 @@ const profileSlice = createSlice({
         state.error = action.payload as string;
       })
       .addCase(fetchUser.pending, (state) => {
-        state.loading = true;
+        state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchUser.fulfilled, (state, action: PayloadAction<TUser>) => {
-        state.loading = false;
+        state.isLoading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
       })
       .addCase(fetchUser.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
         state.isAuthenticated = false;
         state.error = action.payload as string;
       })
@@ -170,19 +175,37 @@ const profileSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(fetchUserOrders.pending, (state) => {
-        state.loading = true;
+        state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchUserOrders.fulfilled, (state, action: PayloadAction<TOrder[]>) => {
-        state.loading = false;
-        state.orders = action.payload;
-      })
+      .addCase(
+        fetchUserOrders.fulfilled,
+        (state, action: PayloadAction<TOrder[]>) => {
+          state.isLoading = false;
+          state.orders = action.payload;
+        }
+      )
       .addCase(fetchUserOrders.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
         state.error = action.payload as string;
       });
+  },
+  selectors: {
+    userSelector: (state) => state.user,
+    isAuthenticatedSelector: (state) => state.isAuthenticated,
+    ordersSelector: (state) => state.orders,
+    isLoadingSelector: (state) => state.isLoading,
+    errorSelector: (state) => state.error
   }
 });
+
+export const {
+  userSelector,
+  isAuthenticatedSelector,
+  ordersSelector,
+  isLoadingSelector,
+  errorSelector
+} = profileSlice.selectors;
 
 export const { clearProfile } = profileSlice.actions;
 export default profileSlice.reducer;

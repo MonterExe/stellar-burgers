@@ -8,9 +8,10 @@ export const IngredientsCategory = forwardRef<
   HTMLUListElement,
   TIngredientsCategoryProps
 >(({ title, titleRef, ingredients }, ref) => {
-  const { bun, ingredients: constructorIngredients } = useSelector(
-    (state) => state.constructor
-  );
+  const constructorState = useSelector((state) => state.constructor);
+  const bun = constructorState?.constructorItems?.bun || null;
+  const constructorIngredients =
+    constructorState?.constructorItems?.ingredients || [];
 
   const ingredientsCounters = useMemo(() => {
     const counters: { [key: string]: number } = {};
