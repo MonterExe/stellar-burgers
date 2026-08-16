@@ -1,6 +1,7 @@
 import { FC, useMemo } from 'react';
 import { useDispatch, useSelector } from '../../services/store';
 import { createOrder, clearOrder } from '../../services/orderSlice';
+import { clearConstructor } from '../../services/burgerConstructorSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BurgerConstructorUI } from '../ui/burger-constructor';
 import { TConstructorIngredient } from '../../utils/types';
@@ -11,10 +12,10 @@ export const BurgerConstructor: FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Правильная структура из constructorSlice
-  const constructorState = useSelector((state) => state.constructor);
-  const bun = constructorState?.constructorItems?.bun || null;
-  const ingredients = constructorState?.constructorItems?.ingredients || [];
+  // Используем новый ключ burgerConstructor
+  const constructorState = useSelector((state) => state.burgerConstructor);
+  const bun = constructorState?.bun || null;
+  const ingredients = constructorState?.ingredients || [];
 
   const orderState = useSelector((state) => state.order);
   const order = orderState?.order || null;
@@ -37,7 +38,12 @@ export const BurgerConstructor: FC = () => {
       bun._id,
       ...ingredients.map((item: TConstructorIngredient) => item._id)
     ];
-    dispatch(createOrder(ids));
+    dispatch(createOrder(ids))
+      .unwrap()
+      .then(() => {
+        dispatch(clearConstructor());
+      })
+      .catch(console.error);
   };
 
   const closeOrderModal = () => {

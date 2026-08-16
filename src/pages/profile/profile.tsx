@@ -35,7 +35,12 @@ export const Profile: FC = () => {
       if (formValue.name !== user?.name) data.name = formValue.name;
       if (formValue.email !== user?.email) data.email = formValue.email;
       if (formValue.password) data.password = formValue.password;
-      dispatch(updateUser(data)).unwrap().catch(console.error);
+      dispatch(updateUser(data))
+        .unwrap()
+        .then(() => {
+          setFormValue((prev) => ({ ...prev, password: '' }));
+        })
+        .catch(console.error);
     }
   };
 
