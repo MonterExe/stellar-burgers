@@ -15,6 +15,7 @@ import { deleteCookie, setCookie } from '../utils/cookie';
 interface ProfileState {
   user: TUser | null;
   isAuthenticated: boolean;
+  isAuthChecked: boolean; // новый флаг
   orders: TOrder[];
   isLoading: boolean;
   error: string | null;
@@ -23,6 +24,7 @@ interface ProfileState {
 const initialState: ProfileState = {
   user: null,
   isAuthenticated: false,
+  isAuthChecked: false,
   orders: [],
   isLoading: false,
   error: null
@@ -114,8 +116,12 @@ const profileSlice = createSlice({
     clearProfile: (state) => {
       state.user = null;
       state.isAuthenticated = false;
+      state.isAuthChecked = false;
       state.orders = [];
       state.error = null;
+    },
+    setAuthChecked: (state) => {
+      state.isAuthChecked = true;
     }
   },
   extraReducers: (builder) => {
@@ -128,10 +134,12 @@ const profileSlice = createSlice({
         state.isLoading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
+        state.isAuthChecked = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+        state.isAuthChecked = true;
       })
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
@@ -143,19 +151,23 @@ const profileSlice = createSlice({
           state.isLoading = false;
           state.user = action.payload;
           state.isAuthenticated = true;
+          state.isAuthChecked = true;
         }
       )
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+        state.isAuthChecked = true;
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
+        state.isAuthChecked = true;
         state.orders = [];
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.error = action.payload as string;
+        state.isAuthChecked = true;
       })
       .addCase(fetchUser.pending, (state) => {
         state.isLoading = true;
@@ -165,11 +177,13 @@ const profileSlice = createSlice({
         state.isLoading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
+        state.isAuthChecked = true;
       })
       .addCase(fetchUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.error = action.payload as string;
+        state.isAuthChecked = true;
       })
       .addCase(updateUser.fulfilled, (state, action: PayloadAction<TUser>) => {
         state.user = action.payload;
@@ -193,19 +207,22 @@ const profileSlice = createSlice({
   selectors: {
     userSelector: (state) => state.user,
     isAuthenticatedSelector: (state) => state.isAuthenticated,
+    isAuthCheckedSelector: (state) => state.isAuthChecked,
     ordersSelector: (state) => state.orders,
     isLoadingSelector: (state) => state.isLoading,
     errorSelector: (state) => state.error
   }
 });
 
+export const { clearProfile, setAuthChecked } = profileSlice.actions;
+
 export const {
   userSelector,
   isAuthenticatedSelector,
+  isAuthCheckedSelector,
   ordersSelector,
   isLoadingSelector,
   errorSelector
 } = profileSlice.selectors;
 
-export const { clearProfile } = profileSlice.actions;
 export default profileSlice.reducer;

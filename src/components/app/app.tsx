@@ -8,7 +8,7 @@ import {
 } from 'react-router-dom';
 import { useDispatch, useSelector } from '../../services/store';
 import { fetchIngredients } from '../../services/ingredientsSlice';
-import { fetchUser } from '../../services/profileSlice';
+import { fetchUser, setAuthChecked } from '../../services/profileSlice';
 import {
   isLoadingSelector,
   errorSelector,
@@ -53,8 +53,17 @@ const App = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (localStorage.getItem('refreshToken')) {
-      dispatch(fetchUser());
+    const token = localStorage.getItem('refreshToken');
+    if (token) {
+      dispatch(fetchUser())
+        .unwrap()
+        .catch(() => {
+          // Даже если пользователь не получен, отмечаем проверку как завершённую
+          dispatch(setAuthChecked());
+        });
+    } else {
+      // Если токена нет, сразу говорим, что проверка завершена (гость)
+      dispatch(setAuthChecked());
     }
   }, [dispatch]);
 

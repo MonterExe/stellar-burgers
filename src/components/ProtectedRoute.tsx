@@ -2,7 +2,7 @@ import { FC, ReactElement } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from '../services/store';
 import {
-  isLoadingSelector,
+  isAuthCheckedSelector,
   isAuthenticatedSelector
 } from '../services/profileSlice';
 import { Preloader } from '@ui';
@@ -16,11 +16,12 @@ const ProtectedRoute: FC<IProtectedRouteProps> = ({
   onlyUnAuth = false,
   children
 }) => {
-  const isLoading = useSelector(isLoadingSelector);
+  const isAuthChecked = useSelector(isAuthCheckedSelector);
   const isAuthenticated = useSelector(isAuthenticatedSelector);
   const location = useLocation();
 
-  if (isLoading) {
+  // Если проверка авторизации ещё не завершена – показываем прелоадер
+  if (!isAuthChecked) {
     return <Preloader />;
   }
 
