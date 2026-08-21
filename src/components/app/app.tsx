@@ -1,31 +1,198 @@
-import { ConstructorPage } from '@pages';
-import '../../index.css';
+import React, { useEffect } from 'react';
+import {
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+  useMatch
+} from 'react-router-dom';
+import { useDispatch, useSelector } from '../../services/store';
+import { fetchIngredients } from '../../services/ingredientsSlice';
+import { fetchUser, setAuthChecked } from '../../services/profileSlice';
+import {
+  isLoadingSelector,
+  errorSelector,
+  isAuthenticatedSelector
+} from '../../services/profileSlice';
+
+import { ConstructorPage } from '../../pages/constructor-page';
+import { Feed } from '../../pages/feed';
+import { Login } from '../../pages/login';
+import { Register } from '../../pages/register';
+import { ForgotPassword } from '../../pages/forgot-password';
+import { ResetPassword } from '../../pages/reset-password';
+import { Profile } from '../../pages/profile';
+import { ProfileOrders } from '../../pages/profile-orders';
+import { NotFound404 } from '../../pages/not-fount-404';
+
+import { AppHeader } from '../app-header';
+import { Modal } from '../modal';
+import { IngredientDetails } from '../ingredient-details';
+import { OrderInfo } from '../order-info';
+import ProtectedRoute from '../ProtectedRoute';
+
 import styles from './app.module.css';
 
-import { AppHeader } from '@components';
-import { Preloader } from '@ui';
-
 const App = () => {
-  /** TODO: взять переменные из стора */
-  const isIngredientsLoading = false;
-  const ingredients = [];
-  const error = null;
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isLoading = useSelector(isLoadingSelector);
+  const isAuthenticated = useSelector(isAuthenticatedSelector);
+  const error = useSelector(errorSelector);
+  const ingredientsState = useSelector((state) => state.ingredients);
+  const ingredients = ingredientsState?.items || [];
+
+  const feedMatch = useMatch('/feed/:number');
+  const profileOrderMatch = useMatch('/profile/orders/:number');
+  const number = feedMatch?.params.number || profileOrderMatch?.params.number;
+
+  useEffect(() => {
+    dispatch(fetchIngredients());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('refreshToken');
+    if (token) {
+      dispatch(fetchUser())
+        .unwrap()
+        .catch(() => {
+          // Даже если пользователь не получен, отмечаем проверку как завершённую
+          dispatch(setAuthChecked());
+        });
+    } else {
+      // Если токена нет, сразу говорим, что проверка завершена (гость)
+      dispatch(setAuthChecked());
+    }
+  }, [dispatch]);
+
+  const background = location.state?.background;
+
+  const closeModal = () => {
+    navigate(-1);
+  };
 
   return (
     <div className={styles.app}>
       <AppHeader />
-      {isIngredientsLoading ? (
-        <Preloader />
-      ) : error ? (
-        <div className={`${styles.error} text text_type_main-medium pt-4`}>
-          {error}
-        </div>
-      ) : ingredients.length > 0 ? (
-        <ConstructorPage />
-      ) : (
-        <div className={`${styles.title} text text_type_main-medium pt-4`}>
-          Нет игредиентов
-        </div>
+      <Routes location={background || location}>
+        <Route path='/' element={<ConstructorPage />} />
+        <Route path='/feed' element={<Feed />} />
+        <Route
+          path='/login'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Login />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/register'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Register />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/forgot-password'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ForgotPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/reset-password'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ResetPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/profile'
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/profile/orders'
+          element={
+            <ProtectedRoute>
+              <ProfileOrders />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path='/ingredients/:id'
+          element={
+            <div className={styles.detailPageWrap}>
+              <IngredientDetails />
+            </div>
+          }
+        />
+        <Route
+          path='/feed/:number'
+          element={
+            <div className={styles.detailPageWrap}>
+              <OrderInfo />
+            </div>
+          }
+        />
+        <Route
+          path='/profile/orders/:number'
+          element={
+            <ProtectedRoute>
+              <div className={styles.detailPageWrap}>
+                <OrderInfo />
+              </div>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path='*' element={<NotFound404 />} />
+      </Routes>
+
+      {background && (
+        <Routes>
+          <Route
+            path='/ingredients/:id'
+            element={
+              <Modal title='Детали ингредиента' onClose={closeModal}>
+                <IngredientDetails />
+              </Modal>
+            }
+          />
+          <Route
+            path='/feed/:number'
+            element={
+              <Modal
+                title={number ? `#${number}` : 'Детали заказа'}
+                onClose={closeModal}
+              >
+                <OrderInfo />
+              </Modal>
+            }
+          />
+          <Route
+            path='/profile/orders/:number'
+            element={
+              <ProtectedRoute>
+                <Modal
+                  title={number ? `#${number}` : 'Детали заказа'}
+                  onClose={closeModal}
+                >
+                  <OrderInfo />
+                </Modal>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
       )}
     </div>
   );
