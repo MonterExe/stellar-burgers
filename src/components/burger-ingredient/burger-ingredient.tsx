@@ -15,12 +15,15 @@ export const BurgerIngredient: FC<TBurgerIngredientProps> = memo(
     };
 
     return (
-      <BurgerIngredientUI
-        ingredient={ingredient}
-        count={count}
-        locationState={{ background: location }}
-        handleAdd={handleAdd}
-      />
+      <div data-testid='ingredient-card'>
+        <BurgerIngredientUI
+          ingredient={ingredient}
+          count={count}
+          locationState={{ background: location }}
+          handleAdd={handleAdd}
+        />
+        {/* Добавляем data-testid на кнопку "Добавить" (если кнопка внутри BurgerIngredientUI, то нужно добавить в UI-компонент) */}
+      </div>
     );
   }
 );
